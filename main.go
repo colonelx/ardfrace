@@ -45,7 +45,7 @@ func main() {
 		menuQuit, err := isMenuItem(menuObj)
 		errorCheck(err)
 
-		menuQuit.Connect("destroy", func() { gtk.MainQuit() })
+		menuQuit.Connect("activate", func() { application.Quit() })
 
 		// Verify that the object is a pointer to a gtk.ApplicationWindow.
 		win, err := isWindow(obj)

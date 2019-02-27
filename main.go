@@ -1,10 +1,11 @@
 package main
 
 import (
-	"errors"
 	"log"
 	"os"
 
+	"github.com/colonelx/ardfrace/helpers"
+	"github.com/colonelx/ardfrace/interfaces"
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -15,7 +16,7 @@ func main() {
 	log.Println("testing")
 	// Create a new application.
 	application, err := gtk.ApplicationNew(appId, glib.APPLICATION_FLAGS_NONE)
-	errorCheck(err)
+	helpers.HandleError(err)
 
 	// Connect function to application startup event, this is not required.
 	application.Connect("startup", func() {
@@ -24,36 +25,11 @@ func main() {
 
 	// Connect function to application activate event
 	application.Connect("activate", func() {
-		log.Println("application activate")
+		window := interfaces.Main{application}
+		window.Init()
 
-		// Get the GtkBuilder UI definition in the glade file.
-		builder, err := gtk.BuilderNewFromFile("resources/ardfrace.glade")
-		errorCheck(err)
-
-		// Map the handlers to callback functions, and connect the signals
-		// to the Builder.
-		signals := map[string]interface{}{
-			"on_main_window_destroy": onMainWindowDestroy,
-		}
-		builder.ConnectSignals(signals)
-
-		// Get the object with the id of "main_window".
-		obj, err := builder.GetObject("main")
-		errorCheck(err)
-
-		menuObj, err := builder.GetObject("menuQuit")
-		menuQuit, err := isMenuItem(menuObj)
-		errorCheck(err)
-
-		menuQuit.Connect("activate", func() { application.Quit() })
-
-		// Verify that the object is a pointer to a gtk.ApplicationWindow.
-		win, err := isWindow(obj)
-		errorCheck(err)
-
-		// Show the Window and all of its components.
-		win.Show()
-		application.AddWindow(win)
+		windowLincense := interfaces.License{application}
+		windowLincense.Init()
 	})
 
 	// Connect function to application shutdown event, this is not required.
@@ -63,33 +39,4 @@ func main() {
 
 	// Launch the application
 	os.Exit(application.Run(os.Args))
-}
-
-func isWindow(obj glib.IObject) (*gtk.Window, error) {
-	// Make type assertion (as per gtk.go).
-	if win, ok := obj.(*gtk.Window); ok {
-		return win, nil
-	}
-	return nil, errors.New("not a *gtk.Window")
-}
-
-func isMenuItem(obj glib.IObject) (*gtk.MenuItem, error) {
-	if menuItem, ok := obj.(*gtk.MenuItem); ok {
-		return menuItem, nil
-	}
-	return nil, errors.New("Not a *gtk.MenuItem")
-}
-
-func errorCheck(e error) {
-	if e != nil {
-		// panic for any errors.
-		log.Panic(e)
-	}
-}
-
-// onMainWindowDestory is the callback that is linked to the
-// on_main_window_destroy handler. It is not required to map this,
-// and is here to simply demo how to hook-up custom callbacks.
-func onMainWindowDestroy() {
-	log.Println("onMainWindowDestroy")
 }
